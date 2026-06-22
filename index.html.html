@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>Quiz Nền Mặt Đường</title>
+<style>
+:root{
+ --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,"Noto Sans","Helvetica Neue",sans-serif;
+ --color-background-primary:#ffffff;
+ --color-background-secondary:#f5f5f5;
+ --color-background-info:#e8f3ff;
+ --color-text-primary:#111827;
+ --color-text-secondary:#6b7280;
+ --color-text-info:#2563eb;
+ --color-border-primary:#d1d5db;
+ --color-border-secondary:#d1d5db;
+ --color-border-tertiary:#e5e7eb;
+ --border-radius-md:8px;
+ --border-radius-lg:12px;
+}
+body{margin:0;padding:12px;font-family:var(--font-sans);-webkit-text-size-adjust:100%;}
+</style>
+</head>
+<body>
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+#app { padding: 1rem 0; }
+.header { margin-bottom: 1.5rem; }
+.progress-bar { height: 6px; background: var(--color-background-secondary); border-radius: 3px; margin-bottom: 0.75rem; }
+.progress-fill { height: 100%; border-radius: 3px; background: #1D9E75; transition: width 0.3s; }
+.meta { display: flex; justify-content: space-between; font-size: 13px; color: var(--color-text-secondary); }
+.score-badge { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 2px 10px; font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.25rem; margin-bottom: 1rem; }
+.chapter-tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: var(--border-radius-md); background: var(--color-background-info); color: var(--color-text-info); margin-bottom: 0.75rem; font-weight: 500; }
+.question-text { font-size: 15px; font-weight: 500; color: var(--color-text-primary); line-height: 1.6; margin-bottom: 1.25rem; }
+.options { display: flex; flex-direction: column; gap: 8px; }
+.option-btn { width: 100%; text-align: left; padding: 10px 14px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); font-size: 14px; cursor: pointer; transition: background 0.15s, border-color 0.15s; line-height: 1.5; }
+.option-btn:hover:not(:disabled) { background: var(--color-background-secondary); border-color: var(--color-border-primary); }
+.option-btn.correct { background: #E1F5EE; border-color: #1D9E75; color: #085041; }
+.option-btn.wrong { background: #FCEBEB; border-color: #E24B4A; color: #501313; }
+.option-btn.reveal { background: #E1F5EE; border-color: #1D9E75; color: #085041; }
+.option-btn:disabled { cursor: default; }
+.feedback { margin-top: 1rem; padding: 10px 14px; border-radius: var(--border-radius-md); font-size: 14px; line-height: 1.5; }
+.feedback.correct { background: #E1F5EE; color: #085041; }
+.feedback.wrong { background: #FCEBEB; color: #501313; }
+.nav-row { display: flex; gap: 10px; margin-top: 1rem; }
+.nav-btn { flex: 1; padding: 10px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); font-size: 14px; cursor: pointer; font-weight: 500; }
+.nav-btn:hover { background: var(--color-background-secondary); }
+.nav-btn.primary { background: #1D9E75; color: #fff; border-color: #1D9E75; }
+.nav-btn.primary:hover { background: #0F6E56; }
+.result-card { text-align: center; padding: 2rem 1.25rem; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); }
+.result-score { font-size: 48px; font-weight: 500; color: #1D9E75; margin: 0.5rem 0; }
+.result-label { font-size: 14px; color: var(--color-text-secondary); }
+.result-msg { font-size: 15px; color: var(--color-text-primary); margin: 1rem 0; }
+.shuffle-row { display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; font-size: 13px; color: var(--color-text-secondary); }
+.filter-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1rem; }
+.filter-btn { padding: 4px 12px; border: 0.5px solid var(--color-border-secondary); border-radius: 20px; background: var(--color-background-primary); color: var(--color-text-secondary); font-size: 12px; cursor: pointer; }
+.filter-btn.active { background: #1D9E75; color: #fff; border-color: #1D9E75; }
+.source-credit { text-align: center; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 0.75rem; }
+.mode-row { display: flex; gap: 8px; margin-bottom: 1rem; }
+.mode-btn { flex: 1; padding: 8px 12px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-secondary); font-size: 13px; font-weight: 500; cursor: pointer; text-align: center; }
+.mode-btn.active { background: #1D9E75; color: #fff; border-color: #1D9E75; }
+.mode-btn:hover:not(.active) { background: var(--color-background-secondary); }
+.exam-start-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 2rem 1.25rem; text-align: center; }
+.exam-start-card h2 { font-size: 18px; font-weight: 600; color: var(--color-text-primary); margin-bottom: 0.75rem; }
+.exam-start-card p { font-size: 14px; color: var(--color-text-secondary); margin-bottom: 0.5rem; line-height: 1.6; }
+.exam-info-list { list-style: none; margin: 1rem 0 1.5rem; display: flex; flex-direction: column; gap: 6px; }
+.exam-info-list li { font-size: 14px; color: var(--color-text-primary); background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 8px 14px; }
+.exam-result-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 2rem 1.25rem; text-align: center; }
+.exam-score-big { font-size: 64px; font-weight: 700; line-height: 1; margin: 0.5rem 0; }
+.exam-score-big.pass { color: #1D9E75; }
+.exam-score-big.fail { color: #E24B4A; }
+.exam-grade-label { font-size: 15px; font-weight: 600; margin: 0.5rem 0; }
+.exam-stats { display: flex; justify-content: center; gap: 20px; margin: 1rem 0; flex-wrap: wrap; }
+.exam-stat { text-align: center; }
+.exam-stat-val { font-size: 22px; font-weight: 600; color: var(--color-text-primary); }
+.exam-stat-lbl { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+.review-list { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 12px; }
+.review-item { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem; text-align: left; }
+.review-item.correct-item { border-left: 3px solid #1D9E75; }
+.review-item.wrong-item { border-left: 3px solid #E24B4A; }
+.review-q { font-size: 14px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 0.5rem; line-height: 1.5; }
+.review-ans { font-size: 13px; margin: 3px 0; }
+.review-ans.correct { color: #085041; }
+.review-ans.wrong { color: #501313; }
+.no-answer-note { font-size: 13px; color: var(--color-text-secondary); font-style: italic; }
+.exam-option-btn { width: 100%; text-align: left; padding: 10px 14px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); font-size: 14px; cursor: pointer; transition: background 0.15s, border-color 0.15s; line-height: 1.5; margin-bottom: 8px; }
+.exam-option-btn:hover:not(.selected) { background: var(--color-background-secondary); }
+.exam-option-btn.selected { background: #EEF6FF; border-color: #3B82F6; color: #1E3A5F; }
+.exam-progress-text { font-size: 13px; color: var(--color-text-secondary); }
+.question-nav-grid { display: flex; flex-wrap: wrap; gap: 6px; margin: 1rem 0; }
+.q-nav-dot { width: 32px; height: 32px; border-radius: 6px; border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-secondary); font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.q-nav-dot.answered { background: #1D9E75; color: #fff; border-color: #1D9E75; }
+.q-nav-dot.current { border-color: #3B82F6; color: #3B82F6; font-weight: 700; }
+.submit-section { margin-top: 1rem; padding: 1rem; background: var(--color-background-secondary); border-radius: var(--border-radius-md); font-size: 13px; color: var(--color-text-secondary); text-align: center; }
+</style>
+
+<div id="app"></div>
+
+<script>
+const ALL_QUESTIONS = [
+  {id:1,ch:"Chương 1",q:"Nếu đường ô tô luôn luôn ổn định toàn khối khi?",opts:["Cường độ nền đường không được thay đổi theo thời gian, theo khí hậu, theo thời tiết, một cách bất lợi","Do độ bền khi chịu cắt trượt và không bị biến dạng quá nhiều dưới tác dụng của áp lực xe","Kích thước hình học và hình dạng của nền đường không bị phá hoại hoặc biến dạng trong mọi hoàn cảnh","Cả A, B và C đều đúng"],ans:3},
+  {id:2,ch:"Chương 1",q:"Biện pháp xử lý khi đắp nền đường trên sườn dốc 30% là?",opts:["Đánh bậc (Đánh cấp)","Dãy cỏ","Làm tường chắn","Cả A, B và C đều đúng"],ans:3},
+  {id:3,ch:"Chương 1",q:"Chế độ thủy nhiệt của nền đường loại nào là ổn định nhất?",opts:["Nền đường đào hoàn toàn","Nền đường đắp hoàn toàn","Nền đường đào chữ L","Nền đường nửa đào nửa đắp"],ans:1},
+  {id:4,ch:"Chương 1",q:"Các biện pháp cải thiện chế độ thủy nhiệt của nền đường?",opts:["Đầm nền chặt đất nền đường","Biện pháp đắp cao nền đường","Biện pháp thoát nước và ngăn chặn các nguồn ẩm","Cả A, B và C đều đúng"],ans:3},
+  {id:5,ch:"Chương 1",q:"Khi xây dựng nền đường trên sườn dốc, biện pháp đánh cấp được sử dụng để xử lý trong trường hợp độ dốc sườn dốc là?",opts:["≤ 20%","20% - 50%","> 50%","Cả A, B và C đều sai"],ans:1},
+  {id:6,ch:"Chương 1",q:"Đoạn nền đắp chịu tác dụng của nước chảy và sóng vỗ cần chọn hình thức gia cố taluy nào?",opts:["Trồng cỏ hoặc cây bụi","Bê tông đất sét","Đầm chặt mái taluy","Xây đá hộc hoặc lát các tấm đan bê tông"],ans:3},
+  {id:7,ch:"Chương 1",q:"Đối với đường cấp I, cấp II phải đảm bảo sức chịu tải CBR của 30cm trên cùng trong khu vực tác dụng của nền đường đạt tối thiểu bằng bao nhiêu?",opts:["8","6","5","4"],ans:0},
+  {id:8,ch:"Chương 1",q:"Nền đường phải luôn đảm bảo ổn định về mặt cường độ, nghĩa là?",opts:["Cường độ của nền đường không được thay đổi theo thời gian","Cường độ của nền đường thay đổi theo thời gian, theo điều kiện khí hậu thời tiết một cách bất lợi","Cường độ của nền đường không được thay đổi theo thời gian, theo điều kiện khí hậu, thời tiết một cách bất lợi","Cường độ của nền đường thay đổi theo thời gian, theo điều kiện khí hậu, thời tiết một cách thuận lợi"],ans:2},
+  {id:9,ch:"Chương 1",q:"Xác định chiều sâu hoạt động của đất nền đường, thông thường giả thiết n = 5–10 và với các tải trọng bánh xe thông thường sẽ tính được Za =?",opts:["< 0,5m","0,9 – 1,5m","0,5 – 0,8m","> 1,5m"],ans:1},
+  {id:10,ch:"Chương 1",q:"Tác dụng của nền đường là?",opts:["Khắc phục địa hình thiên nhiên nhằm tạo dải đất đủ rộng dọc theo tuyến đường","Làm cơ sở cho áo đường: lớp phía trên cùng với áo đường chịu tác dụng của tải trọng xe cộ","Cả A và B đều đúng","Cả A và B đều sai"],ans:2},
+  {id:11,ch:"Chương 1",q:"Độ dốc mái taluy nền đào thông dụng là bao nhiêu?",opts:["1:1,5","1:1","1,5:1","1:2"],ans:0},
+  {id:12,ch:"Chương 1",q:"Khi chọn độ dốc mái taluy nền đường đào dựa trên cơ sở nào?",opts:["Chiều sâu nền đào","Loại vật liệu đắp","Địa chất dưới chân nền đắp","Cả A, B và C đều đúng"],ans:0},
+  {id:13,ch:"Chương 1",q:"Cao độ thiết kế mép mặt đường ở những đoạn ven sông, cống phải cao hơn mức nước ngập theo tần suất tính toán tối thiểu là?",opts:["0,3m","0,5m","0,4m","A, B, C sai"],ans:1},
+  {id:14,ch:"Chương 1",q:"Khi xây dựng nền đường trên sườn dốc, trường hợp nào phải thiết kế công trình chống đỡ (tường chắn)?",opts:["> 20%","20 – 50%","> 50%","> 40%"],ans:2},
+  {id:15,ch:"Chương 1",q:"Thiết kế áo đường mềm cấp V–VI, tổng chiều dày < 60cm, lớp đất trên cùng dưới đáy áo đường yêu cầu?",opts:["K ≥ 0,95, H = 30cm","K ≥ 0,98, H = 30cm","K ≥ 0,98, H = 50cm","K ≥ 0,95, H = 50cm"],ans:3},
+  {id:16,ch:"Chương 1",q:"Trường hợp nào cần kiểm toán ổn định mái dốc taluy nền đường đắp trên đất thông thường?",opts:["Chiều cao taluy < 6m","Chiều cao taluy > 6m","Chiều cao taluy > 6 – 8m","Chiều cao taluy > 12m"],ans:1},
+  {id:17,ch:"Chương 1",q:"Thiết kế áo đường mềm cấp I–IV, tổng chiều dày > 60cm, lớp đất trên cùng dưới đáy áo đường yêu cầu?",opts:["K ≥ 0,95, H = 30cm","K ≥ 0,98, H = 30cm","K ≥ 0,98, H = 50cm","K ≥ 0,95, H = 50cm"],ans:0},
+  {id:18,ch:"Chương 1",q:"Đánh giá sự ổn định của nền đường đắp trên sườn dốc theo sơ đồ nào?",opts:["Mặt trượt phẳng","Mặt trượt gãy khúc","Mặt trượt quay","Cả A, B và C đều sai"],ans:0},
+  {id:19,ch:"Chương 1",q:"Thiết kế áo đường mềm cấp V–VI, tổng chiều dày > 60cm, lớp đất trên cùng dưới đáy áo đường yêu cầu?",opts:["K ≥ 0,95, H = 30cm","K ≥ 0,98, H = 30cm","K ≥ 0,98, H = 50cm","K ≥ 0,95, H = 50cm"],ans:3},
+  {id:20,ch:"Chương 1",q:"Khi chọn độ dốc mái taluy nền đường đào dựa trên cơ sở nào? (câu 22)",opts:["Chiều sâu nền đào","Thế nằm của đất đá","Địa chất tại nền đào","Cả A, B và C"],ans:3},
+  {id:21,ch:"Chương 1",q:"Bê tông xi măng làm mặt đường theo TCCS39:2022/TCĐBVN có cường độ chịu nén tối thiểu là?",opts:["30 MPa","25 MPa","20 MPa","15 MPa"],ans:0},
+  {id:22,ch:"Chương 1",q:"Lớp móng trong kết cấu áo đường bê tông xi măng nhằm mục đích?",opts:["Giảm áp lực tải trọng ô tô xuống nền đất, hạn chế nước ngấm qua khe","Giảm tích lũy biến dạng ở góc và cạnh tấm, đảm bảo độ bằng phẳng","Đảm bảo ô tô, xe máy đi lại trong thời gian thi công","Cả A, B và C đều đúng"],ans:3},
+  {id:23,ch:"Chương 1",q:"Áo đường cứng là?",opts:["Kết cấu có lớp móng bằng đá dăm gia cố xi măng","Kết cấu có lớp móng bằng đá dăm gia cố nhựa","Kết cấu có lớp mặt hoặc lớp móng bằng bê tông xi măng","Kết cấu có lớp mặt hoặc lớp móng bằng bê tông nhựa"],ans:2},
+  {id:24,ch:"Chương 1",q:"Khoảng cách giữa các khe dọc trong mặt đường BTXM thường là?",opts:["> 5m","Không vượt quá 4,5m và thường bằng bề rộng một làn xe","= 5m","Cả A, B và C đều sai"],ans:1},
+  {id:25,ch:"Chương 1",q:"Mục đích của việc bố trí các khe co, dãn là?",opts:["Tạo điều kiện thuận lợi cho nước thấm qua tấm BTXM","Tăng khả năng an toàn cho phương tiện vận hành","Giảm ứng suất nhiệt trong tấm khi nhiệt độ thay đổi","Tăng khả năng chịu kéo khi uốn của tấm BTXM"],ans:2},
+  {id:26,ch:"Chương 1",q:"Chiều rộng lớp móng trên phải rộng hơn chiều rộng phần xe chạy mỗi bên bao nhiêu nếu dùng công nghệ ván khuôn trượt?",opts:["30cm","45cm","50cm","55cm"],ans:1},
+  {id:27,ch:"Chương 1",q:"Lớp ngăn cách trong kết cấu áo đường BTXM KHÔNG nhằm mục đích nào?",opts:["Giảm ma sát giữa đáy tấm BTXM và lớp móng bên dưới","Tăng ma sát giữa đáy tấm BTXM và lớp móng bên dưới","Ngăn không cho nước từ các khe nối thấm xuống bên dưới","Giữ nước cho quá trình hydrat hóa của BTXM"],ans:1},
+  {id:28,ch:"Chương 1",q:"Cốt thép trong khe nối giữa các tấm BTXM nhằm mục đích?",opts:["Truyền lực giữa các tấm BTXM liền kề","Cải thiện khả năng chống nứt của tấm BTXM","Tăng cường độ của tấm BTXM","Hạn chế phá hoại tại góc tấm"],ans:0},
+  {id:29,ch:"Chương 1",q:"Chiều rộng lớp móng trên phải rộng hơn mỗi bên bao nhiêu nếu dùng công nghệ thi công đơn giản?",opts:["30cm","45cm","50cm","65cm"],ans:3},
+  {id:30,ch:"Chương 1",q:"Mục đích của các khe co là?",opts:["Tạo điều kiện cho nước thấm qua tấm BTXM","Tăng khả năng an toàn cho phương tiện","Tạo không gian để tấm BTXM dịch chuyển khi thể tích thay đổi do nhiệt độ giảm","Xác định trước vị trí các khe nứt có thể xảy ra khi tấm BTXM co lại"],ans:3},
+  {id:31,ch:"Chương 1",q:"Mục đích của các khe giãn là?",opts:["Tạo không gian cho sự gia tăng thể tích của tấm BTXM khi nhiệt độ tăng lên","Hạn chế khối lượng bê tông tươi cần sản xuất cho mỗi mẻ","Giảm vận tốc, tăng độ an toàn khi vận hành phương tiện","Tăng khả năng chịu kéo khi uốn của tấm BTXM"],ans:0},
+  {id:32,ch:"Chương 1",q:"Theo TCCS39:2022/TCĐBVN chiều dài của tấm BTXM là?",opts:["5–6m","4–5m","6–7m","7–8m"],ans:0},
+  {id:33,ch:"Chương 1",q:"Theo TCCS39:2022/TCĐBVN, bê tông xi măng làm mặt đường có cường độ chịu kéo uốn tối thiểu là?",opts:["5 MPa","4 MPa","6 MPa","3 MPa"],ans:0},
+  {id:34,ch:"Chương 1",q:"Theo TCCS39:2022/TCĐBVN tỉ số chiều dài/chiều rộng tấm không nên vượt quá?",opts:["1,25 lần","1,35 lần","1,45 lần","1,55 lần"],ans:0},
+  {id:35,ch:"Chương 1",q:"Theo TCCS39:2022/TCĐBVN, phải bố trí lớp móng dưới khi quy mô giao thông thiết kế thuộc?",opts:["Cấp nặng","Cấp trung bình","Cấp nhẹ","Cả A, B và C đều đúng"],ans:3},
+  {id:36,ch:"Chương 1",q:"Kiểm tra ứng suất kéo uốn của tấm BTXM khi tải trọng bánh xe đặt ở đâu?",opts:["Đặt giữa tấm","Đặt ở góc tấm","Đặt ở giữa cạnh dọc tấm","Phải kiểm tra cả 3 vị trí"],ans:3},
+  {id:37,ch:"Chương 2",q:"Khi tính lún nền đường đắp trên đất yếu cần tính?",opts:["Độ lún tức thời, từ biến","Lún cố kết","Độ lún theo thời gian","Cả A, B và C đều đúng"],ans:3},
+  {id:38,ch:"Chương 2",q:"Thế nào là lún cố kết?",opts:["Lún do nước trong lỗ rỗng thoát ra và đất yếu bị nén chặt","Lún do biến dạng ngang không thoát nước","Cả A và B đều đúng","Cả A và B đều sai"],ans:0},
+  {id:39,ch:"Chương 2",q:"Khi xử lý nền đắp trên lớp đất yếu có chiều dài lớn, cường độ yêu cầu cao, biện pháp nào tốt nhất?",opts:["Đào bỏ một phần lớp đất yếu và làm bệ phản áp","Dùng vật liệu nhẹ để đắp","Dùng vải địa kỹ thuật bất thấm","Dùng cọc cát"],ans:3},
+  {id:40,ch:"Chương 2",q:"Trường hợp nào phải dùng tầng đệm cát khi đắp nền đường trên đất yếu?",opts:["Đắp trực tiếp trên đất yếu","Đào một phần hay toàn bộ tầng đất yếu","Sử dụng giếng cát hay bấc thấm","Tất cả 3 trường hợp trên"],ans:3},
+  {id:41,ch:"Chương 2",q:"Khi tính toán độ lún tổng cộng của nền đường đắp trên đất yếu, tải trọng gây lún phải xét đến?",opts:["Chỉ tải trọng nền đắp thiết kế, không xét đắp gia tải và xe cộ","Gồm tải trọng nền đắp, phần đắp phản áp và tải trọng xe cộ","Gồm phần đắp gia tải trước, không xét xe cộ","Cả A, B và C đều sai"],ans:3},
+  {id:42,ch:"Chương 2",q:"Khi tính toán ổn định nền đường đắp trên đất yếu thì tải trọng xe?",opts:["Không xét đến","Đổi thành lực tập trung","Quy đổi thành lớp đất đắp tương đương","Cả A, B và C đều sai"],ans:2},
+  {id:43,ch:"Chương 2",q:"Lún tức thời do?",opts:["Biến dạng ngang không thoát nước, xét đến khả năng nở hông của đất yếu","Nước trong lỗ rỗng thoát ra","Tải trọng xe tác dụng","Tải trọng xe trùng phục"],ans:0},
+  {id:44,ch:"Chương 2",q:"Khi phân mảnh mặt trượt tròn khoét xuống vùng đất yếu, hệ số ổn định nhỏ nhất Kmin là?",opts:["1,20","1,30","1,40","1,50"],ans:1},
+  {id:45,ch:"Chương 2",q:"Độ lún cố kết cho phép còn lại trong 1 năm sau thi công với đường cao tốc, Vlk ≥ 80 km/h, tầng mặt cấp cao A1, đoạn nền đắp thông thường?",opts:["≤ 10cm","≤ 20cm","≤ 30cm","≤ 40cm"],ans:0},
+  {id:46,ch:"Chương 2",q:"Độ lún cố kết cho phép còn lại trong 1 năm sau thi công với đường Vlk ≤ 60 km/h, tầng mặt cấp cao A1, đoạn nền đắp thông thường?",opts:["≤ 10cm","≤ 20cm","≤ 30cm","≤ 40cm"],ans:1},
+  {id:47,ch:"Chương 2",q:"Ưu điểm của bệ phản áp là?",opts:["Tăng độ ổn định và cho phép đắp nền đường với chiều cao lớn hơn","Phòng lũ, chống sóng, chống thấm nước","Làm tăng độ lún nền đường","Cả A và B"],ans:0},
+  {id:48,ch:"Chương 2",q:"Vải địa kỹ thuật tăng cường sẽ?",opts:["Cải thiện cường độ chống trượt sâu","Chống được sự lún trồi","Giảm độ lún","Tăng nhanh quá trình cố kết"],ans:0},
+  {id:49,ch:"Chương 3",q:"Trong các tiết diện rãnh, loại nào có khả năng thoát nước tốt nhất?",opts:["Hình thang","Hình tam giác","Hình chữ nhật","Hình bán nguyệt"],ans:3},
+  {id:50,ch:"Chương 3",q:"Kiểm tra khả năng thoát nước của rãnh tại vị trí nào?",opts:["Đầu rãnh","Giữa rãnh","Cuối rãnh","Không cần kiểm tra"],ans:2},
+  {id:51,ch:"Chương 3",q:"Trong điều kiện thông thường, độ dốc tối thiểu của rãnh là?",opts:["0,3%","0,4%","0,5%","Bằng độ dốc trắc dọc"],ans:0},
+  {id:52,ch:"Chương 3",q:"Cao độ mặt đường tại vị trí cống tròn phải cao hơn đỉnh cống tối thiểu là?",opts:["0,5m","Bằng chiều dày kết cấu áo đường","Cả A và B đều đúng","Cả A và B đều sai"],ans:2},
+  {id:53,ch:"Chương 3",q:"Khi thiết kế công trình thoát nước ngang đường, thường sử dụng cống tròn do?",opts:["Giá rẻ, dễ cơ giới hóa trong thi công","Khả năng chịu lực tốt trong mọi trường hợp","Thoát nước tốt","Cả A và C đều đúng"],ans:0},
+  {id:54,ch:"Chương 3",q:"Cao độ mép rãnh phải lớn hơn mực nước chảy trong rãnh tối thiểu là?",opts:["5cm","15cm","25cm","35cm"],ans:1},
+  {id:55,ch:"Chương 3",q:"Đối với đường có rãnh dọc hình thang định hình, tối đa bao nhiêu mét phải bố trí 1 cống cấu tạo thoát nước ngang?",opts:["400m","500m","600m","700m"],ans:1},
+  {id:56,ch:"Chương 3",q:"Các chế độ làm việc của cống?",opts:["Có áp và bán áp","Không áp, có áp và cao áp","Không áp, bán áp và cao áp","Không áp, bán áp và có áp"],ans:3},
+  {id:57,ch:"Chương 3",q:"Rãnh tiết diện hình tam giác thường dùng ở những nơi?",opts:["Có điều kiện thoát nước không tốt, địa chất dễ đào","Có địa chất đảm bảo nước thấm nhanh xuống phía dưới","Có điều kiện thoát nước tốt, địa chất cứng, thi công bằng máy đào rãnh hình tam giác","Cả A, B và C đều sai"],ans:2},
+  {id:58,ch:"Chương 3",q:"Bố trí rãnh đỉnh khi?",opts:["Rãnh dọc bị hỏng","Lưu lượng nước từ lưu vực đổ về đường lớn, rãnh dọc không thoát hết","Cả A và B đều đúng","Cả A và B đều sai"],ans:1},
+  {id:59,ch:"Chương 3",q:"Tác dụng của rãnh ngầm là?",opts:["Mao dẫn nước ngầm","Làm cho mức nước ngầm đứng yên","Hạ thấp mức nước ngầm","Thoát nước từ nền đường thấm xuống"],ans:2},
+  {id:60,ch:"Chương 3",q:"Nên chọn khẩu độ cống không nhỏ hơn bao nhiêu để tiện cho việc sửa chữa?",opts:["Không nhỏ hơn 1m","Không nhỏ hơn 0,5m","Nhỏ hơn 1m","Nhỏ hơn 0,5m"],ans:0},
+  {id:61,ch:"Chương 3",q:"Cao độ thiết kế nền đường ở các đoạn ven sông, cống có áp và vùng ngập nước thường xuyên phải cao hơn mực nước tính toán tối thiểu là?",opts:["0,3m","0,4m","0,5m","1,0m"],ans:2},
+  {id:62,ch:"Chương 3",q:"Mục đích xây dựng hệ thống thoát nước mặt đường?",opts:["Ngăn chặn nước thấm xuống nền đường làm giảm khả năng chịu lực","Không để nước ngập úng trên mặt đường gây khó khăn cho giao thông","Cả A và B đều đúng","Cả A và B đều sai"],ans:2},
+  {id:63,ch:"Chương 3",q:"Tác dụng của rãnh ngầm là để?",opts:["Cắt và hạ thấp mực nước ngầm","Thoát nước ngang đường","Thoát nước dọc đường","Cả A, B và C đều đúng"],ans:0},
+  {id:64,ch:"Chương 3",q:"Đối với đường có rãnh dọc hình tam giác định hình, tối đa bao nhiêu mét phải bố trí 1 cống cấu tạo thoát nước ngang?",opts:["100m","200m","250m","500m"],ans:2},
+  {id:65,ch:"Chương 3",q:"Chế độ làm việc nào của cống sẽ làm cho cống có tuổi thọ cao và nền đường ổn định nhất?",opts:["Bán áp","Có áp","Không áp","Không áp và bán áp"],ans:2},
+  {id:66,ch:"Chương 3",q:"Chế độ làm việc nào của cống sẽ làm cho cống kém an toàn nhất?",opts:["Bán áp","Có áp","Không áp","Không áp và bán áp"],ans:0},
+  {id:67,ch:"Chương 3",q:"Khi chiều cao taluy đào bằng bao nhiêu thì phải bố trí rãnh đỉnh?",opts:["≥ 6m","≥ 10m","≥ 15m","≥ 12m"],ans:0},
+  {id:68,ch:"Chương 3",q:"Tần suất tính lưu lượng của rãnh đỉnh và rãnh biên là?",opts:["1%","2%","4%","5%"],ans:3},
+  {id:69,ch:"Chương 3",q:"Chiều dài gia cố sau cống thường sử dụng là Lgc = __ D (D là đường kính cống)?",opts:["0,5","1","2","3"],ans:2},
+  {id:70,ch:"Chương 3",q:"Rãnh đỉnh khi thiết kế không nên sâu quá?",opts:["0,60m","1,00m","1,50m","2,00m"],ans:1},
+  {id:71,ch:"Chương 3",q:"Khi có nhiều cây trôi, vật lăn mà chưa đến mức phải làm cầu, nên dùng loại cống nào?",opts:["Cống tròn","Cống bản","Cống hộp","Cống vòm"],ans:3},
+  {id:72,ch:"Chương 3",q:"Tác dụng của tường cánh của cống là?",opts:["Để giữ ổn định cho nền đường tại vị trí cống","Để dẫn hướng dòng chảy và chống xói lở móng cống","Để chống xói lở móng cống","Để dẫn hướng dòng chảy và giữ ổn định cho nền đường tại vị trí cống"],ans:1},
+  {id:73,ch:"Chương 3",q:"Về mặt lý thuyết chiều dài cống phụ thuộc vào?",opts:["Chiều cao nền đắp, chiều rộng nền đường, đường kính cống và chiều dày móng cống","Chiều cao nền đắp, đường kính cống và độ dốc mái taluy","Chiều cao nền đắp, chiều rộng nền đường, đường kính cống và độ dốc mái taluy","Chiều rộng nền đường, độ dốc mái taluy và đường kính cống"],ans:2},
+  {id:74,ch:"Chương 3",q:"Cốt thép nào là cốt thép chịu lực trong cống tròn?",opts:["Cốt thép xoắn (lò xo)","Cốt thép dọc","Cốt thép định vị của 2 lồng thép (thép đai)","Tất cả A, B, C đều đúng"],ans:0},
+  {id:75,ch:"Chương 3",q:"Khi yêu cầu mỹ quan cao và giải tỏa mặt bằng gặp khó khăn, dùng loại rãnh nào?",opts:["Rãnh hình thang","Rãnh hình tam giác","Rãnh hình chữ nhật","Rãnh hình bán nguyệt"],ans:2},
+  {id:76,ch:"Chương 3",q:"Trong các loại mặt đường, loại nào làm việc theo nguyên lý cho cường độ và độ ổn định tốt nhất?",opts:["Nguyên lý Macadam","Nguyên lý cấp phối","Nguyên lý lèn xếp","Nguyên lý đá chèn đá"],ans:1},
+  {id:77,ch:"Chương 3",q:"Trong hai loại áo đường, loại nào có nền đất phía dưới ít phải tham gia chịu lực?",opts:["Áo đường cứng","Áo đường mềm","Cả A và B đều đúng","Cả A và B đều sai"],ans:0},
+  {id:78,ch:"Chương 3",q:"Chọn mô đun đàn hồi E₀ của nền đất dựa trên cơ sở nào?",opts:["Tính chất cơ lý của đất nền đường","Độ ẩm nền đất","Loại đất và độ ẩm tương đối của đất nền đường","Cả A và B đều đúng"],ans:2},
+  {id:79,ch:"Chương 3",q:"Theo TCCS38:2022/TCĐBVN, mô đun đàn hồi của vật liệu làm mặt đường được lấy ở thời điểm chế độ thủy nhiệt nào?",opts:["Thuận lợi nhất","Bất lợi nhất","Trung bình trong năm","Cả A, B và C đều sai"],ans:1},
+  {id:80,ch:"Chương 3",q:"Khi xác định Eyc theo TCCS38:2022, cần dựa vào?",opts:["Số trục xe tính toán và loại mặt đường","Trị số mô đun đàn hồi tối thiểu","Loại tải trọng trục tiêu chuẩn","Cả A, B và C đều đúng"],ans:3},
+  {id:81,ch:"Chương 3",q:"Thứ tự kiểm toán áo đường mềm theo TCCS38:2022 (giao thông thông thường)?",opts:["Cắt trượt → độ võng → kéo uốn","Độ võng → cắt trượt → kéo uốn","Kéo uốn → độ võng → cắt trượt","Độ võng → kéo uốn → cắt trượt"],ans:1},
+  {id:82,ch:"Chương 3",q:"Theo TCCS38:2022, chiều dày lớp tạo nhám tối thiểu là?",opts:["1,5cm","3,0cm","2,5cm","1,0cm"],ans:0},
+  {id:83,ch:"Chương 3",q:"Theo TCCS38:2022, chiều dày tối thiểu lớp BTNC12.5 và BTNC19 là?",opts:["1,5 lần đường kính hạt cốt liệu lớn nhất","2 lần đường kính hạt cốt liệu lớn nhất","3 lần đường kính hạt cốt liệu lớn nhất","2,5 lần đường kính hạt cốt liệu lớn nhất"],ans:1},
+  {id:84,ch:"Chương 3",q:"Theo TCCS38:2022, chiều dày tối thiểu lớp đá dăm là?",opts:["1,5 lần đường kính hạt cốt liệu lớn nhất","2 lần đường kính hạt cốt liệu lớn nhất","3 lần đường kính hạt cốt liệu lớn nhất","2,5 lần đường kính hạt cốt liệu lớn nhất"],ans:2},
+  {id:85,ch:"Chương 3",q:"Theo TCCS38:2022, khi kiểm toán theo tiêu chuẩn độ võng đàn hồi, mô đun đàn hồi của BTN lấy ứng với nhiệt độ tính toán là?",opts:["10–15°C","60°C","30°C","Cả A, B và C"],ans:2},
+  {id:86,ch:"Chương 3",q:"Vì sao bãi đỗ xe, trạm thu phí, trạm dừng xe buýt thường dùng mặt đường BTXM?",opts:["Dễ thi công, giá rẻ, vật liệu sẵn có","Cường độ lớn, tuổi thọ cao, chịu lực ngang tốt hơn mặt đường BTN","Độ nhám và khả năng chống thấm tốt","Cả B và C đều đúng"],ans:3},
+  {id:87,ch:"Chương 3",q:"Theo TCCS38:2022, khi kiểm toán theo tiêu chuẩn kéo uốn, mô đun đàn hồi của BTN lấy ứng với nhiệt độ?",opts:["10–15°C","60°C","30°C","Cả A, B và C"],ans:0},
+  {id:88,ch:"Chương 3",q:"Thiết kế cấu tạo áo đường mềm cấp nặng trở lên, thứ tự vật liệu hợp lý nhất (từ trên xuống) là?",opts:["BTNC12.5, BTNC19, ĐGCN25, cấp phối đá dăm","BTNC12.5, BTNC9.5, ĐGCN25, cấp phối đá dăm","BTNC12.5, ĐGCN25, BTNC19, cấp phối đá dăm","BTNC12.5, BTNC19, cấp phối đá dăm, cấp phối đá dăm gia cố xi măng"],ans:0},
+  {id:89,ch:"Chương 3",q:"Khi xác định Eyc theo TCCS38:2022, cần dựa vào?",opts:["Số trục xe tính toán và trị số mô đun đàn hồi tối thiểu","Cấp đường và loại tầng mặt kết cấu áo đường thiết kế","Số trục xe tính toán và loại mặt đường","Số trục xe tính toán, loại tầng mặt và trị số mô đun đàn hồi tối thiểu"],ans:3},
+  {id:90,ch:"Chương 3",q:"Mục đích của việc kiểm toán ứng suất cắt trong nền đất và lớp vật liệu kém dính là?",opts:["Hạn chế sự phát sinh nứt dẫn đến phá hoại","Hạn chế sự phát sinh biến dạng dẻo","Hạn chế sự phát triển hiện tượng mỏi trong vật liệu","Cả A, B, C đều sai"],ans:1},
+  {id:91,ch:"Chương 3",q:"Mục đích của việc kiểm toán ứng suất kéo uốn ở đáy lớp vật liệu liền khối là?",opts:["Hạn chế sự phát sinh nứt dẫn đến phá hoại","Hạn chế sự phát sinh biến dạng dẻo","Hạn chế hiện tượng mỏi trong vật liệu","Cả A, B và C đều đúng"],ans:0},
+  {id:92,ch:"Chương 3",q:"Số trục xe tính toán khi thiết kế kết cấu lề gia cố lấy bằng?",opts:["Số trục xe tính toán của làn xe cơ giới liền kề","35–50% số trục xe tính toán của làn xe cơ giới liền kề","35% số trục xe tính toán của làn xe cơ giới liền kề","> 50% số trục xe tính toán của làn xe cơ giới liền kề"],ans:1},
+  {id:93,ch:"Chương 3",q:"Khi xác định ứng suất cắt do trọng lượng bản thân Tav để tính theo tiêu chuẩn cắt trượt, cần dựa vào?",opts:["Bề dày tổng cộng các lớp nằm trên lớp tính toán","Lực dính tính toán của nền đất hoặc lớp vật liệu kém dính","Trị số ma sát trong φ của nền đất hoặc lớp vật liệu kém dính","Cả A và C đều đúng"],ans:3},
+  {id:94,ch:"Chương 3",q:"Thứ tự kiểm toán áo đường mềm tải trọng rất nặng theo TCCS38:2022?",opts:["Độ võng → cắt trượt → kéo uốn","Kéo uốn → độ võng → cắt trượt","Độ võng → kéo uốn → cắt trượt","Cắt trượt → kéo uốn → độ võng"],ans:2},
+  {id:95,ch:"Chương 3",q:"Tiêu chuẩn thiết kế áo đường mềm hiện hành ở Việt Nam là?",opts:["TCCS38:2022/TCĐBVN","TCCS39:2022/TCĐBVN","TCCS37:2022/TCĐBVN","Cả A và C"],ans:0},
+  {id:96,ch:"Chương 3",q:"Trong trường hợp thông thường, tải trọng trục tiêu chuẩn thiết kế nền mặt đường mềm là?",opts:["Trục đơn 100kN với bánh đôi","Trục đơn 120kN với bánh đôi","Tải trọng nặng đặc trưng quyết định bởi tư vấn và chủ đầu tư","Tải trọng nặng đặc trưng quyết định bởi tư vấn thiết kế"],ans:0},
+  {id:97,ch:"Chương 3",q:"Đối với áo đường cấp thấp B1 và B2, chỉ cần kiểm toán?",opts:["Tiêu chuẩn độ võng đàn hồi","Tiêu chuẩn kéo uốn trong các lớp vật liệu liền khối","Độ võng đàn hồi và kéo uốn","Tiêu chuẩn cắt trượt trong nền đất"],ans:0},
+  {id:98,ch:"Chương 3",q:"Để hạn chế nứt phản ánh, tổng bề dày tối thiểu tầng mặt nhựa cấp cao A1 đặt trực tiếp trên lớp móng gia cố XM là?",opts:["Bằng chiều dày lớp móng nửa cứng","Bằng chiều dày lớp móng nửa cứng và tối thiểu 10–12cm","Bằng chiều dày lớp móng nửa cứng và tối thiểu 14–18cm","Cả A, B và C đều đúng"],ans:2},
+  {id:99,ch:"Chương 3",q:"Các giải pháp hạn chế nứt phản ánh khi tầng mặt nhựa đặt trực tiếp trên lớp móng gia cố XM là?",opts:["Lớp hấp thụ ứng suất (SAMI)","Lưới địa kỹ thuật hay lưới sợi thủy tinh","Xẻ khe giả và chèn khe bằng vật liệu dẻo","Cả A, B và C đều đúng"],ans:3},
+  {id:100,ch:"Chương 3",q:"Theo TCCS38:2022, khi lượng giao thông nặng trở lên thì tầng móng yêu cầu sử dụng?",opts:["Hỗn hợp gia cố nhựa (ATB)","Hỗn hợp gia cố xi măng (CTB)","Cả A và/hoặc B","Không yêu cầu"],ans:2},
+  {id:101,ch:"Chương 3",q:"Theo TCCS38:2022, bề rộng đáy móng ít nhất phải bằng bề rộng tầng móng mỗi bên?",opts:["15cm","25cm","15cm và nên bằng bề rộng nền đường","20cm"],ans:2},
+  {id:102,ch:"Chương 3",q:"Trường hợp đường chuyên dùng có tải trọng đặc biệt, tải trọng thiết kế nền mặt đường mềm là?",opts:["Trục đơn 100kN với bánh đôi","Trục đơn 120kN với bánh đôi","Tải trọng nặng đặc trưng quyết định bởi tư vấn và chủ đầu tư","Tải trọng nặng đặc trưng quyết định bởi tư vấn thiết kế"],ans:2},
+  {id:103,ch:"Chương 3",q:"Theo TCCS38:2022, bề rộng lớp móng trên phải rộng hơn bề rộng tầng mặt mỗi bên?",opts:["15cm","25cm","15cm và nên bằng bê tông mặt đường","20cm"],ans:0},
+  {id:104,ch:"Chương 3",q:"Lớp đáy móng được bố trí chiều dày tối thiểu là?",opts:["30cm","15cm","10cm","20cm"],ans:0},
+  {id:105,ch:"Chương 3",q:"Mô đun đàn hồi của lớp đáy móng nên đạt yêu cầu?",opts:["E ≥ 20MPa","E ≥ 30MPa","E ≥ 50MPa","E ≥ 40MPa"],ans:2},
+  {id:106,ch:"Chương 3",q:"Thiết kế áo đường mềm cấp I–IV, tổng chiều dày > 60cm, lớp đất trên cùng dưới đáy áo đường yêu cầu?",opts:["K ≥ 0,95, H = 30cm","K ≥ 0,95, H = 50cm","K ≥ 0,98, H = 50cm","Tất cả A, B, C đều sai"],ans:0},
+  {id:107,ch:"Chương 3",q:"Chọn loại tầng mặt áo đường nên căn cứ vào?",opts:["Cấp hạng kỹ thuật của đường","Khả năng công nghệ thi công và duy tu bảo dưỡng","Lưu lượng xe chạy và tốc độ xe chạy thiết kế","Cả A và C đều đúng"],ans:3},
+  {id:108,ch:"Chương 3",q:"Cấu tạo lớp đáy móng áo đường mềm cần đảm bảo?",opts:["Bề dày tối thiểu 30cm và K ≥ 0,98","Bề dày tối thiểu 30cm và E ≥ 50MPa","Bề dày tối thiểu 50cm và E ≥ 50MPa","Bề dày tối thiểu 50cm và K ≥ 0,98"],ans:1},
+  {id:109,ch:"Chương 3",q:"Tầng mặt áo đường được phân thành mấy cấp?",opts:["4","3","2","Cả A, B và C đều sai"],ans:0},
+  {id:110,ch:"Chương 3",q:"Mô đun đàn hồi các tầng lớp vật liệu trong kết cấu áo đường được lựa theo nguyên tắc nào?",opts:["Cường độ các lớp tăng theo chiều sâu","Cường độ các lớp giảm dần để phù hợp biểu đồ phân bổ ứng suất và hạ giá thành","Cường độ các lớp không nên thay đổi theo chiều sâu","Cả A, B, C đều đúng"],ans:1}
+];
+
+const CHAPTERS = ["Tất cả", "Chương 1", "Chương 2", "Chương 3"];
+const LABELS = ["A","B","C","D"];
+
+let state = {
+  chapter: "Tất cả",
+  questions: [],
+  idx: 0,
+  answered: {},
+  score: 0,
+  done: false,
+  shuffle: true
+};
+
+let examState = {
+  phase: 'start',
+  questions: [],
+  answers: {},
+  idx: 0
+};
+
+let appMode = 'practice';
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i>0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+// ========== PRACTICE MODE ==========
+function initQuiz() {
+  let pool = ALL_QUESTIONS;
+  if (state.chapter !== "Tất cả") pool = pool.filter(q => q.ch === state.chapter);
+  state.questions = state.shuffle ? shuffle(pool) : pool;
+  state.idx = 0;
+  state.answered = {};
+  state.score = 0;
+  state.done = false;
+  render();
+}
+
+function render() {
+  const app = document.getElementById('app');
+  const modeTabs = `<div class="mode-row">
+    <button class="mode-btn${appMode==='practice'?' active':''}" onclick="switchMode('practice')">📚 Luyện tập</button>
+    <button class="mode-btn${appMode==='exam'?' active':''}" onclick="switchMode('exam')">📝 Kiểm tra</button>
+  </div>`;
+
+  if (appMode === 'exam') { renderExam(modeTabs); return; }
+
+  if (state.done) { app.innerHTML = modeTabs + renderResult(); return; }
+  const q = state.questions[state.idx];
+  const total = state.questions.length;
+  const pct = Math.round((state.idx / total) * 100);
+  const ans = state.answered[state.idx];
+  const answered = ans !== undefined;
+
+  app.innerHTML = modeTabs + `
+    <div class="header">
+      <div class="source-credit">Nguồn: Lê Văn Nam - QLXD K65</div>
+      <div class="filter-row">
+        ${CHAPTERS.map(ch => `<button class="filter-btn${state.chapter===ch?' active':''}" onclick="setChapter('${ch}')">${ch}</button>`).join('')}
+      </div>
+      <div class="shuffle-row">
+        <input type="checkbox" id="sh" ${state.shuffle?'checked':''} onchange="toggleShuffle(this.checked)">
+        <label for="sh">Trộn câu hỏi ngẫu nhiên</label>
+        <span style="margin-left:auto" class="score-badge">✓ ${state.score}/${Object.keys(state.answered).length}</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="meta">
+        <span style="color:var(--color-text-secondary);font-size:13px">${q.ch}</span>
+        <span style="color:var(--color-text-secondary);font-size:13px">Câu ${state.idx+1}/${total}</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="chapter-tag">${q.ch}</div>
+      <div class="question-text">Câu ${state.idx+1}: ${q.q}</div>
+      <div class="options">
+        ${q.opts.map((opt,i) => {
+          let cls = '';
+          if (answered) {
+            if (i === q.ans) cls = 'correct';
+            else if (i === ans && ans !== q.ans) cls = 'wrong';
+          }
+          return `<button class="option-btn ${cls}" ${answered?'disabled':''} onclick="answer(${i})">
+            <strong>${LABELS[i]}.</strong> ${opt}
+          </button>`;
+        }).join('')}
+      </div>
+      ${answered ? `<div class="feedback ${ans===q.ans?'correct':'wrong'}">
+        ${ans===q.ans ? '✓ Chính xác!' : `✗ Sai rồi! Đáp án đúng: <strong>${LABELS[q.ans]}. ${q.opts[q.ans]}</strong>`}
+      </div>` : ''}
+    </div>
+    <div class="nav-row">
+      <button class="nav-btn" onclick="prev()" ${state.idx===0?'disabled':''}>← Trước</button>
+      ${state.idx < total-1
+        ? `<button class="nav-btn primary" onclick="next()" ${!answered?'disabled':''}>Tiếp →</button>`
+        : `<button class="nav-btn primary" onclick="finish()" ${!answered?'disabled':''}>Xem kết quả</button>`}
+    </div>`;
+}
+
+function renderResult() {
+  const total = state.questions.length;
+  const pct = Math.round((state.score/total)*100);
+  let msg = pct>=80?'Xuất sắc! Bạn nắm vững kiến thức rồi 🎉':pct>=60?'Khá tốt! Ôn thêm một chút nữa nhé.':'Cần ôn tập thêm bạn nhé. Cố lên!';
+  return `<div class="result-card">
+    <div style="font-size:15px;color:var(--color-text-secondary);margin-bottom:0.5rem">Kết quả luyện tập</div>
+    <div class="result-score">${state.score}/${total}</div>
+    <div class="result-label">${pct}% chính xác</div>
+    <div class="result-msg">${msg}</div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:1rem">
+      <button class="nav-btn" onclick="review()" style="flex:none;padding:10px 20px">Xem lại đáp án</button>
+      <button class="nav-btn primary" onclick="initQuiz()" style="flex:none;padding:10px 20px">Làm lại</button>
+    </div>
+  </div>`;
+}
+
+function answer(i) {
+  if (state.answered[state.idx] !== undefined) return;
+  state.answered[state.idx] = i;
+  if (i === state.questions[state.idx].ans) state.score++;
+  render();
+}
+
+function next() { if(state.idx < state.questions.length-1){state.idx++;render();} }
+function prev() { if(state.idx > 0){state.idx--;render();} }
+function finish() { state.done = true; render(); }
+function review() { state.done = false; state.idx = 0; render(); }
+function setChapter(ch) { state.chapter = ch; initQuiz(); }
+function toggleShuffle(v) { state.shuffle = v; initQuiz(); }
+
+// ========== MODE SWITCHING ==========
+function switchMode(mode) {
+  appMode = mode;
+  if (mode === 'exam' && examState.phase === 'start') { renderExamStart(); return; }
+  if (mode === 'practice') { render(); return; }
+  render();
+}
+
+// ========== EXAM MODE ==========
+function startExam() {
+  const pool = shuffle(ALL_QUESTIONS).slice(0, 30);
+  examState = { phase: 'doing', questions: pool, answers: {}, idx: 0 };
+  render();
+}
+
+function examSelectAnswer(i) {
+  examState.answers[examState.idx] = i;
+  render();
+}
+
+function examGoTo(idx) {
+  examState.idx = idx;
+  render();
+}
+
+function examPrev() { if(examState.idx > 0){ examState.idx--; render(); } }
+function examNext() { if(examState.idx < 29){ examState.idx++; render(); } }
+
+function submitExam() {
+  const unanswered = 30 - Object.keys(examState.answers).length;
+  if (unanswered > 0) {
+    if (!confirm(`Bạn còn ${unanswered} câu chưa trả lời. Bạn có muốn nộp bài không?`)) return;
+  }
+  examState.phase = 'result';
+  render();
+}
+
+function examReview() {
+  examState.phase = 'review';
+  examState.idx = 0;
+  render();
+}
+
+function resetExam() {
+  examState = { phase: 'start', questions: [], answers: {}, idx: 0 };
+  render();
+}
+
+function renderExamStart() {
+  const app = document.getElementById('app');
+  const modeTabs = `<div class="mode-row">
+    <button class="mode-btn${appMode==='practice'?' active':''}" onclick="switchMode('practice')">📚 Luyện tập</button>
+    <button class="mode-btn${appMode==='exam'?' active':''}" onclick="switchMode('exam')">📝 Kiểm tra</button>
+  </div>`;
+  app.innerHTML = modeTabs + `
+    <div class="exam-start-card">
+      <div style="font-size:36px;margin-bottom:0.5rem">📝</div>
+      <h2>Kiểm tra Nền Mặt Đường</h2>
+      <p>Bài kiểm tra gồm 30 câu hỏi ngẫu nhiên từ toàn bộ nội dung.<br>Chấm điểm theo thang điểm 10.</p>
+      <ul class="exam-info-list">
+        <li>📌 30 câu hỏi trắc nghiệm ngẫu nhiên</li>
+        <li>📊 Thang điểm 10 (mỗi câu đúng = 1/3 điểm)</li>
+        <li>✅ Điểm đạt: từ 5.0 trở lên</li>
+        <li>🔀 Câu hỏi được rút ngẫu nhiên từ ${ALL_QUESTIONS.length} câu</li>
+      </ul>
+      <button class="nav-btn primary" onclick="startExam()" style="padding:12px 32px;font-size:15px">Bắt đầu kiểm tra →</button>
+    </div>`;
+}
+
+function renderExam(modeTabs) {
+  const app = document.getElementById('app');
+  if (!modeTabs) modeTabs = `<div class="mode-row">
+    <button class="mode-btn${appMode==='practice'?' active':''}" onclick="switchMode('practice')">📚 Luyện tập</button>
+    <button class="mode-btn${appMode==='exam'?' active':''}" onclick="switchMode('exam')">📝 Kiểm tra</button>
+  </div>`;
+
+  if (examState.phase === 'start') { renderExamStart(); return; }
+
+  if (examState.phase === 'result' || examState.phase === 'review') {
+    renderExamResult(modeTabs); return;
+  }
+
+  // DOING phase
+  const q = examState.questions[examState.idx];
+  const chosen = examState.answers[examState.idx];
+  const answeredCount = Object.keys(examState.answers).length;
+  const pct = Math.round((answeredCount / 30) * 100);
+
+  const navDots = examState.questions.map((_, i) => {
+    let cls = 'q-nav-dot';
+    if (examState.answers[i] !== undefined) cls += ' answered';
+    if (i === examState.idx) cls += ' current';
+    return `<button class="${cls}" onclick="examGoTo(${i})">${i+1}</button>`;
+  }).join('');
+
+  app.innerHTML = modeTabs + `
+    <div class="header">
+      <div class="source-credit">Nguồn: Lê Văn Nam - QLXD K65</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="meta">
+        <span class="exam-progress-text">${q.ch} • Đã trả lời: ${answeredCount}/30</span>
+        <span class="score-badge">Câu ${examState.idx+1}/30</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="chapter-tag">${q.ch}</div>
+      <div class="question-text">Câu ${examState.idx+1}: ${q.q}</div>
+      <div class="options">
+        ${q.opts.map((opt,i) => {
+          let cls = 'exam-option-btn';
+          if (chosen === i) cls += ' selected';
+          return `<button class="${cls}" onclick="examSelectAnswer(${i})"><strong>${LABELS[i]}.</strong> ${opt}</button>`;
+        }).join('')}
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="nav-btn" onclick="examPrev()" ${examState.idx===0?'disabled':''}>← Trước</button>
+      ${examState.idx < 29
+        ? `<button class="nav-btn primary" onclick="examNext()">Tiếp →</button>`
+        : `<button class="nav-btn primary" onclick="submitExam()">Nộp bài ✓</button>`}
+    </div>
+    <div style="margin-top:1rem">
+      <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:6px;font-weight:500">Điều hướng câu hỏi:</div>
+      <div class="question-nav-grid">${navDots}</div>
+    </div>
+    <div class="submit-section">
+      <button class="nav-btn primary" onclick="submitExam()" style="padding:10px 24px">📋 Nộp bài và xem kết quả</button>
+    </div>`;
+}
+
+function renderExamResult(modeTabs) {
+  const app = document.getElementById('app');
+  let correct = 0;
+  examState.questions.forEach((q, i) => {
+    if (examState.answers[i] === q.ans) correct++;
+  });
+  const score10 = Math.round((correct / 30) * 10 * 10) / 10;
+  const pct = Math.round((correct / 30) * 100);
+  const pass = score10 >= 5;
+
+  let grade = '';
+  if (score10 >= 9) grade = 'Xuất sắc 🏆';
+  else if (score10 >= 8) grade = 'Giỏi 🌟';
+  else if (score10 >= 7) grade = 'Khá 👍';
+  else if (score10 >= 5) grade = 'Trung bình ✓';
+  else grade = 'Chưa đạt ✗';
+
+  if (examState.phase === 'review') {
+    // Show detailed review
+    const reviewItems = examState.questions.map((q, i) => {
+      const userAns = examState.answers[i];
+      const isCorrect = userAns === q.ans;
+      return `<div class="review-item ${isCorrect?'correct-item':'wrong-item'}">
+        <div class="review-q">${i+1}. ${q.q}</div>
+        ${userAns !== undefined
+          ? `<div class="review-ans ${isCorrect?'correct':'wrong'}">
+              ${isCorrect ? '✓' : '✗'} Bạn chọn: <strong>${LABELS[userAns]}. ${q.opts[userAns]}</strong>
+            </div>`
+          : `<div class="no-answer-note">— Không trả lời</div>`}
+        ${!isCorrect ? `<div class="review-ans correct">✓ Đáp án đúng: <strong>${LABELS[q.ans]}. ${q.opts[q.ans]}</strong></div>` : ''}
+      </div>`;
+    }).join('');
+
+    app.innerHTML = modeTabs + `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem">
+        <button class="nav-btn" onclick="examState.phase='result';render()" style="flex:none;padding:8px 16px">← Kết quả</button>
+        <span style="font-size:15px;font-weight:600;color:var(--color-text-primary)">Xem lại đáp án</span>
+      </div>
+      <div class="review-list">${reviewItems}</div>
+      <div style="margin-top:1rem;display:flex;gap:10px">
+        <button class="nav-btn" onclick="examState.phase='result';render()" style="flex:1">← Quay lại</button>
+        <button class="nav-btn primary" onclick="resetExam()" style="flex:1">Làm bài mới</button>
+      </div>`;
+    return;
+  }
+
+  app.innerHTML = modeTabs + `
+    <div class="exam-result-card">
+      <div style="font-size:14px;color:var(--color-text-secondary);margin-bottom:0.5rem">Kết quả kiểm tra</div>
+      <div class="exam-score-big ${pass?'pass':'fail'}">${score10.toFixed(1)}</div>
+      <div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:0.5rem">/ 10 điểm</div>
+      <div class="exam-grade-label" style="color:${pass?'#1D9E75':'#E24B4A'}">${grade}</div>
+      <div class="exam-stats">
+        <div class="exam-stat">
+          <div class="exam-stat-val" style="color:#1D9E75">${correct}</div>
+          <div class="exam-stat-lbl">Câu đúng</div>
+        </div>
+        <div class="exam-stat">
+          <div class="exam-stat-val" style="color:#E24B4A">${30 - correct - (30 - Object.keys(examState.answers).length)}</div>
+          <div class="exam-stat-lbl">Câu sai</div>
+        </div>
+        <div class="exam-stat">
+          <div class="exam-stat-val" style="color:var(--color-text-secondary)">${30 - Object.keys(examState.answers).length}</div>
+          <div class="exam-stat-lbl">Bỏ trống</div>
+        </div>
+        <div class="exam-stat">
+          <div class="exam-stat-val">${pct}%</div>
+          <div class="exam-stat-lbl">Chính xác</div>
+        </div>
+      </div>
+      <div style="padding:12px;background:${pass?'#E1F5EE':'#FCEBEB'};border-radius:var(--border-radius-md);margin:1rem 0;font-size:14px;color:${pass?'#085041':'#501313'}">
+        ${pass ? '🎉 Chúc mừng! Bạn đã đạt điểm qua môn.' : '📚 Cần ôn tập thêm. Hãy thử lại nhé!'}
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="nav-btn" onclick="examReview()" style="flex:none;padding:10px 20px">🔍 Xem đáp án</button>
+        <button class="nav-btn primary" onclick="resetExam()" style="flex:none;padding:10px 20px">🔄 Làm bài mới</button>
+      </div>
+    </div>`;
+}
+
+initQuiz();
+</script>
+
+
+<style>
+#loginOverlay{position:fixed;inset:0;background:#f3f4f6;display:flex;align-items:center;justify-content:center;z-index:99999;padding:16px}
+.login-card{background:#fff;width:100%;max-width:420px;border-radius:16px;padding:24px;box-shadow:0 10px 30px rgba(0,0,0,.15)}
+.login-card h2{text-align:center;margin-bottom:10px}
+.login-card p{text-align:center;color:#666;margin-bottom:18px}
+.login-card input{width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;font-size:16px;margin-bottom:12px}
+.login-card button{width:100%;padding:12px;border:none;border-radius:8px;background:#1D9E75;color:white;font-size:16px}
+.login-error{color:#d00;font-size:14px;margin-top:8px;text-align:center}
+</style>
+<div id="loginOverlay">
+ <div class="login-card">
+   <h2>🔐 Đăng nhập</h2>
+   <p>Nhập mật khẩu để truy cập hệ thống</p>
+   <input type="password" id="pwd" placeholder="Mật khẩu">
+   <button onclick="checkLogin()">Đăng nhập</button>
+   <div class="login-error" id="loginError"></div>
+ </div>
+</div>
+<script>
+const APP_PASSWORD = "QLXDK65-2026";
+function checkLogin(){
+ const p=document.getElementById('pwd').value;
+ if(p===APP_PASSWORD){
+   localStorage.setItem('quiz_logged_in','1');
+   document.getElementById('loginOverlay').style.display='none';
+ }else{
+   document.getElementById('loginError').innerText='Mật khẩu không đúng';
+ }
+}
+window.addEventListener('load',()=>{
+ if(localStorage.getItem('quiz_logged_in')==='1'){
+   const el=document.getElementById('loginOverlay');
+   if(el) el.style.display='none';
+ }
+});
+</script>
+
+
+
+
+<style>
+#adminModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100000;overflow-y:auto;padding:16px}
+.admin-box{background:#fff;max-width:520px;margin:20px auto;padding:24px;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.admin-box h3{font-size:18px;font-weight:700;color:#111827;margin-bottom:4px}
+.admin-tabs{display:flex;gap:4px;background:#f3f4f6;border-radius:10px;padding:4px;margin:14px 0}
+.admin-tab{flex:1;padding:8px;border:none;border-radius:7px;background:transparent;font-size:13px;font-weight:500;color:#6b7280;cursor:pointer;transition:.15s}
+.admin-tab.active{background:#fff;color:#111827;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.admin-section{display:none}.admin-section.active{display:block}
+.admin-input{width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;margin-bottom:10px;box-sizing:border-box}
+.admin-btn{width:100%;padding:10px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:.15s}
+.admin-btn.primary{background:#1D9E75;color:#fff}.admin-btn.primary:hover{background:#0F6E56}
+.admin-btn.danger{background:#EF4444;color:#fff}.admin-btn.danger:hover{background:#DC2626}
+.admin-btn.secondary{background:#f3f4f6;color:#374151;border:1px solid #e5e7eb}.admin-btn.secondary:hover{background:#e5e7eb}
+.admin-msg{font-size:13px;margin-top:8px;padding:8px 12px;border-radius:6px;display:none}
+.admin-msg.ok{background:#E1F5EE;color:#085041;display:block}
+.admin-msg.err{background:#FCEBEB;color:#501313;display:block}
+.device-list{display:flex;flex-direction:column;gap:8px;margin:12px 0;max-height:320px;overflow-y:auto}
+.device-item{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px;position:relative}
+.device-item.current-dev{border-color:#1D9E75;background:#f0fdf7}
+.device-item.blocked-dev{border-color:#EF4444;background:#fff5f5;opacity:.75}
+.device-meta{font-size:12px;color:#6b7280;margin-top:4px;line-height:1.6}
+.device-badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600;margin-left:6px}
+.badge-you{background:#DCFCE7;color:#166534}
+.badge-active{background:#DBEAFE;color:#1E40AF}
+.badge-blocked{background:#FEE2E2;color:#991B1B}
+.device-kick-btn{position:absolute;top:10px;right:10px;padding:4px 10px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer}
+.device-kick-btn.kick{background:#FEE2E2;color:#991B1B}.device-kick-btn.kick:hover{background:#FECACA}
+.device-kick-btn.restore{background:#DCFCE7;color:#166534}.device-kick-btn.restore:hover{background:#BBF7D0}
+.no-devices{text-align:center;padding:24px;color:#9ca3af;font-size:14px}
+.stat-row{display:flex;gap:8px;margin-bottom:12px}
+.stat-box{flex:1;background:#f3f4f6;border-radius:8px;padding:10px;text-align:center}
+.stat-num{font-size:22px;font-weight:700;color:#111827}
+.stat-lbl{font-size:11px;color:#6b7280;margin-top:2px}
+</style>
+
+<div id="adminPanel" style="position:fixed;bottom:10px;right:10px;z-index:9999">
+  <button onclick="openAdmin()" style="padding:8px 14px;background:#1D9E75;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2)">⚙️ Quản trị</button>
+</div>
+
+<div id="adminModal">
+<div class="admin-box">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+    <h3>🛡️ Quản trị hệ thống</h3>
+    <button onclick="closeAdmin()" style="border:none;background:none;font-size:20px;cursor:pointer;color:#9ca3af">✕</button>
+  </div>
+  <div style="font-size:12px;color:#9ca3af;margin-bottom:10px">Chỉ quản trị viên mới được truy cập</div>
+
+  <div class="admin-tabs">
+    <button class="admin-tab active" onclick="switchTab('devices')">📱 Thiết bị đăng nhập</button>
+    <button class="admin-tab" onclick="switchTab('password')">🔑 Đổi mật khẩu</button>
+  </div>
+
+  <!-- TAB: DEVICES -->
+  <div class="admin-section active" id="tab-devices">
+    <div class="stat-row" id="devStats"></div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button class="admin-btn secondary" onclick="refreshDevices()" style="flex:1;font-size:13px">🔄 Làm mới</button>
+      <button class="admin-btn danger" onclick="kickAllDevices()" style="flex:1;font-size:13px">⛔ Đăng xuất tất cả</button>
+    </div>
+    <div class="device-list" id="deviceList"></div>
+    <div id="devMsg" class="admin-msg"></div>
+  </div>
+
+  <!-- TAB: PASSWORD -->
+  <div class="admin-section" id="tab-password">
+    <input class="admin-input" id="oldPwd" type="password" placeholder="Mật khẩu hiện tại">
+    <input class="admin-input" id="newPwd" type="password" placeholder="Mật khẩu mới (tối thiểu 4 ký tự)">
+    <input class="admin-input" id="confirmPwd" type="password" placeholder="Xác nhận mật khẩu mới">
+    <button class="admin-btn primary" onclick="changePassword()">💾 Cập nhật mật khẩu</button>
+    <div id="adminMsg" class="admin-msg"></div>
+  </div>
+</div>
+</div>
+
+<script>
+const ADMIN_PASSWORD='Admin@2026#';
+const DEVICE_STORE_KEY='quiz_devices';
+const SESSION_KEY='quiz_session_id';
+const BLOCKED_KEY='quiz_blocked_sessions';
+
+// ── Device fingerprint ──────────────────────────────
+function getOrCreateSessionId(){
+  let sid=sessionStorage.getItem(SESSION_KEY);
+  if(!sid){
+    sid='dev_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);
+    sessionStorage.setItem(SESSION_KEY,sid);
+  }
+  return sid;
+}
+
+function getBrowserInfo(){
+  const ua=navigator.userAgent;
+  let browser='Trình duyệt khác';
+  if(ua.includes('Chrome')&&!ua.includes('Edg'))browser='Chrome';
+  else if(ua.includes('Firefox'))browser='Firefox';
+  else if(ua.includes('Safari')&&!ua.includes('Chrome'))browser='Safari';
+  else if(ua.includes('Edg'))browser='Edge';
+  const isMobile=/Mobi|Android|iPhone|iPad/i.test(ua);
+  return (isMobile?'📱 ':'💻 ')+browser;
+}
+
+function getDevices(){
+  try{return JSON.parse(localStorage.getItem(DEVICE_STORE_KEY)||'[]');}catch{return [];}
+}
+function saveDevices(d){localStorage.setItem(DEVICE_STORE_KEY,JSON.stringify(d));}
+function getBlocked(){
+  try{return JSON.parse(localStorage.getItem(BLOCKED_KEY)||'[]');}catch{return [];}
+}
+function saveBlocked(b){localStorage.setItem(BLOCKED_KEY,JSON.stringify(b));}
+
+function registerDevice(){
+  const sid=getOrCreateSessionId();
+  const blocked=getBlocked();
+  if(blocked.includes(sid)){
+    // Force logout
+    localStorage.removeItem('quiz_logged_in');
+    location.reload();
+    return;
+  }
+  const devices=getDevices();
+  const now=Date.now();
+  const idx=devices.findIndex(d=>d.id===sid);
+  if(idx===-1){
+    devices.push({id:sid,browser:getBrowserInfo(),loginTime:now,lastSeen:now,ip:'—'});
+  }else{
+    devices[idx].lastSeen=now;
+  }
+  // Keep only last 50 entries
+  while(devices.length>50)devices.shift();
+  saveDevices(devices);
+}
+
+function checkBlocked(){
+  const sid=getOrCreateSessionId();
+  const blocked=getBlocked();
+  if(blocked.includes(sid)&&localStorage.getItem('quiz_logged_in')==='1'){
+    localStorage.removeItem('quiz_logged_in');
+    alert('⛔ Thiết bị này đã bị quản trị viên đăng xuất.');
+    location.reload();
+  }
+}
+
+// Register on login & periodically check
+function onLoginSuccess(){
+  registerDevice();
+  setInterval(checkBlocked,8000);
+}
+
+// Patch checkLogin to register device
+window.addEventListener('load',()=>{
+  if(localStorage.getItem('quiz_logged_in')==='1'){
+    registerDevice();
+    setInterval(checkBlocked,8000);
+  }
+});
+
+// ── Admin UI ────────────────────────────────────────
+function openAdmin(){
+  const p=prompt('Nhập mật khẩu quản trị viên:');
+  if(p!==ADMIN_PASSWORD){alert('❌ Sai mật khẩu quản trị viên');return;}
+  document.getElementById('adminModal').style.display='block';
+  switchTab('devices');
+  refreshDevices();
+}
+function closeAdmin(){document.getElementById('adminModal').style.display='none';}
+
+function switchTab(t){
+  document.querySelectorAll('.admin-tab').forEach((b,i)=>b.classList.toggle('active',['devices','password'][i]===t));
+  document.querySelectorAll('.admin-section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+}
+
+function fmtTime(ts){
+  if(!ts)return '—';
+  const d=new Date(ts);
+  return d.toLocaleDateString('vi-VN')+' '+d.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});
+}
+function timeSince(ts){
+  if(!ts)return '';
+  const s=Math.floor((Date.now()-ts)/1000);
+  if(s<60)return s+'s trước';
+  if(s<3600)return Math.floor(s/60)+'p trước';
+  if(s<86400)return Math.floor(s/3600)+'h trước';
+  return Math.floor(s/86400)+'d trước';
+}
+
+function refreshDevices(){
+  const devices=getDevices();
+  const blocked=getBlocked();
+  const myId=getOrCreateSessionId();
+  const list=document.getElementById('deviceList');
+  const stats=document.getElementById('devStats');
+  const active=devices.filter(d=>!blocked.includes(d.id)&&(Date.now()-d.lastSeen)<300000).length;
+  const blockedCount=blocked.length;
+
+  stats.innerHTML=`
+    <div class="stat-box"><div class="stat-num">${devices.length}</div><div class="stat-lbl">Tổng thiết bị</div></div>
+    <div class="stat-box"><div class="stat-num" style="color:#1D9E75">${active}</div><div class="stat-lbl">Đang hoạt động</div></div>
+    <div class="stat-box"><div class="stat-num" style="color:#EF4444">${blockedCount}</div><div class="stat-lbl">Đã chặn</div></div>`;
+
+  if(devices.length===0){
+    list.innerHTML='<div class="no-devices">📭 Chưa có thiết bị nào đăng nhập</div>';return;
+  }
+
+  // Sort: current first, then by lastSeen desc
+  const sorted=[...devices].sort((a,b)=>{
+    if(a.id===myId)return -1;if(b.id===myId)return 1;
+    return b.lastSeen-a.lastSeen;
+  });
+
+  list.innerHTML=sorted.map(dev=>{
+    const isMe=dev.id===myId;
+    const isBlocked=blocked.includes(dev.id);
+    const isRecent=(Date.now()-dev.lastSeen)<300000;
+    let badge=isMe?'<span class="device-badge badge-you">Thiết bị này</span>':
+               isBlocked?'<span class="device-badge badge-blocked">Đã chặn</span>':
+               isRecent?'<span class="device-badge badge-active">Đang online</span>':'';
+    let btnHtml=isMe?'':(isBlocked
+      ?`<button class="device-kick-btn restore" onclick="restoreDevice('${dev.id}')">✅ Khôi phục</button>`
+      :`<button class="device-kick-btn kick" onclick="kickDevice('${dev.id}')">⛔ Đăng xuất</button>`);
+    return `<div class="device-item ${isMe?'current-dev':''} ${isBlocked?'blocked-dev':''}">
+      ${btnHtml}
+      <div style="font-size:13px;font-weight:600;color:#111827">${dev.browser}${badge}</div>
+      <div class="device-meta">
+        🔑 Đăng nhập: ${fmtTime(dev.loginTime)}<br>
+        🕐 Hoạt động cuối: ${fmtTime(dev.lastSeen)} (${timeSince(dev.lastSeen)})<br>
+        🆔 ID: <code style="font-size:11px">${dev.id.slice(0,20)}…</code>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function showDevMsg(msg,ok){
+  const el=document.getElementById('devMsg');
+  el.className='admin-msg '+(ok?'ok':'err');
+  el.innerText=msg;
+  setTimeout(()=>{el.className='admin-msg';},3000);
+}
+
+function kickDevice(sid){
+  if(!confirm('Đăng xuất thiết bị này?'))return;
+  const blocked=getBlocked();
+  if(!blocked.includes(sid))blocked.push(sid);
+  saveBlocked(blocked);
+  showDevMsg('✅ Đã đăng xuất thiết bị. Thiết bị sẽ bị tự động ngắt kết nối.','ok');
+  refreshDevices();
+}
+
+function restoreDevice(sid){
+  const blocked=getBlocked().filter(b=>b!==sid);
+  saveBlocked(blocked);
+  showDevMsg('✅ Đã khôi phục quyền truy cập cho thiết bị.','ok');
+  refreshDevices();
+}
+
+function kickAllDevices(){
+  if(!confirm('⛔ Đăng xuất TẤT CẢ thiết bị (trừ thiết bị này)?\n\nThao tác này sẽ ngắt kết nối tất cả người dùng khác.'))return;
+  const myId=getOrCreateSessionId();
+  const devices=getDevices();
+  const blocked=getBlocked();
+  devices.forEach(d=>{if(d.id!==myId&&!blocked.includes(d.id))blocked.push(d.id);});
+  saveBlocked(blocked);
+  showDevMsg('✅ Đã đăng xuất tất cả thiết bị khác.','ok');
+  refreshDevices();
+}
+
+// ── Password change ──────────────────────────────────
+function showAdminMsg(msg,ok){
+  const el=document.getElementById('adminMsg');
+  el.className='admin-msg '+(ok?'ok':'err');
+  el.innerText=msg;
+}
+function changePassword(){
+  const oldP=document.getElementById('oldPwd').value;
+  const newP=document.getElementById('newPwd').value;
+  const conf=document.getElementById('confirmPwd').value;
+  const current=localStorage.getItem('quiz_password');
+  if(oldP!==current){showAdminMsg('❌ Sai mật khẩu hiện tại','err');return;}
+  if(newP.length<4){showAdminMsg('❌ Mật khẩu mới phải từ 4 ký tự','err');return;}
+  if(newP!==conf){showAdminMsg('❌ Mật khẩu xác nhận không khớp','err');return;}
+  localStorage.setItem('quiz_password',newP);
+  document.getElementById('oldPwd').value='';
+  document.getElementById('newPwd').value='';
+  document.getElementById('confirmPwd').value='';
+  showAdminMsg('✅ Đổi mật khẩu thành công!','ok');
+}
+
+// ── Patch login ──────────────────────────────────────
+(function(){
+  if(!localStorage.getItem('quiz_password'))localStorage.setItem('quiz_password','QLXDK65-2026');
+  window.checkLogin=function(){
+    const p=document.getElementById('pwd').value;
+    const real=localStorage.getItem('quiz_password');
+    if(p===real){
+      localStorage.setItem('quiz_logged_in','1');
+      document.getElementById('loginOverlay').style.display='none';
+      onLoginSuccess();
+    }else{
+      document.getElementById('loginError').innerText='Mật khẩu không đúng';
+    }
+  };
+})();
+</script>
+
+</body>
+</html>
